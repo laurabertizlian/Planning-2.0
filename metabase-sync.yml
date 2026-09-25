@@ -1,0 +1,21 @@
+name: Metabase sync
+
+# Vercel's free Hobby plan only allows cron jobs to run once a day, which is
+# too infrequent to reliably catch each client's individual Feed Sync Time.
+# This runs on GitHub's own free scheduler instead, calling the same
+# CRON_SECRET-protected endpoint. The vercel.json daily cron stays in place
+# too, as a safety net in case this workflow is ever paused.
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch: {} # lets you trigger it manually from the Actions tab too
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call the Metabase sync endpoint
+        run: |
+          curl -sS -f -X GET "https://planning-2-0.vercel.app/api/metabase-sync" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
