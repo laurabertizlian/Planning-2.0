@@ -1,0 +1,1149 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Contract Pacing Desk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --ground:#F2F4F8; --surface:#FFFFFF; --surface-2:#F8F9FC; --surface-3:#EDF0F6;
+  --ink:#101728; --ink-2:#48536B; --ink-3:#6E7A93; --line:#DCE1EC; --line-2:#C6CDDC;
+  --navy:#22365C; --navy-ink:#F2F4F8;
+  --accent:#C4441F; --accent-soft:#FBEAE4;
+  --plan:#2A6BC4; --actual:#DB5430;
+  --good:#157F5F; --good-soft:#E2F2EC;
+  --warn:#8A5A06; --warn-soft:#FBF0DC;
+  --crit:#AE2318; --crit-soft:#FBE7E4;
+  --shadow:0 1px 2px rgba(16,23,40,.06),0 4px 14px rgba(16,23,40,.05);
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,Segoe UI,sans-serif;
+  --disp:"Archivo","IBM Plex Sans",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --ground:#0D1220; --surface:#151C2E; --surface-2:#1B2338; --surface-3:#222C45;
+  --ink:#EAEEF7; --ink-2:#AAB4CA; --ink-3:#7E8AA4; --line:#2A3450; --line-2:#3A4665;
+  --navy:#0A0F1C; --navy-ink:#E7ECF7;
+  --accent:#F0785A; --accent-soft:#3A2119;
+  --plan:#4E8AE0; --actual:#E2673F;
+  --good:#4FBF97; --good-soft:#12312A;
+  --warn:#DCA83F; --warn-soft:#332713;
+  --crit:#F0736A; --crit-soft:#39191A;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 20px rgba(0,0,0,.3);
+}}
+:root[data-theme="dark"]{
+  --ground:#0D1220; --surface:#151C2E; --surface-2:#1B2338; --surface-3:#222C45;
+  --ink:#EAEEF7; --ink-2:#AAB4CA; --ink-3:#7E8AA4; --line:#2A3450; --line-2:#3A4665;
+  --navy:#0A0F1C; --navy-ink:#E7ECF7;
+  --accent:#F0785A; --accent-soft:#3A2119;
+  --plan:#4E8AE0; --actual:#E2673F;
+  --good:#4FBF97; --good-soft:#12312A;
+  --warn:#DCA83F; --warn-soft:#332713;
+  --crit:#F0736A; --crit-soft:#39191A;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 20px rgba(0,0,0,.3);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);font:400 14px/1.5 var(--sans);
+  -webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{font-family:var(--disp);font-weight:600;margin:0;text-wrap:balance;letter-spacing:-.011em}
+a{color:var(--plan)}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--plan);outline-offset:2px;border-radius:3px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+
+/* ---------- chrome ---------- */
+.topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:40;background:var(--navy);
+  color:var(--navy-ink);border-bottom:1px solid rgba(0,0,0,.25)}
+.topbar-in{max-width:1500px;margin:0 auto;padding:10px 16px;display:flex;gap:16px;
+  align-items:center;flex-wrap:wrap}
+.brand{display:flex;flex-direction:column;gap:1px;margin-right:4px}
+.brand b{font-family:var(--disp);font-weight:700;font-size:15px;letter-spacing:-.01em}
+.brand span{font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;opacity:.62}
+.tabs{display:flex;gap:2px;flex-wrap:wrap}
+.tab{background:transparent;border:0;color:var(--navy-ink);opacity:.66;padding:6px 11px;
+  border-radius:6px;cursor:pointer;font-weight:500;font-size:13px}
+.tab:hover{opacity:1;background:rgba(255,255,255,.09)}
+.tab[aria-current="page"]{opacity:1;background:rgba(255,255,255,.15)}
+.spacer{flex:1 1 auto}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;
+  font-size:12px;font-weight:500;border:1px solid transparent;white-space:nowrap}
+.chip .dot{width:7px;height:7px;border-radius:50%;background:currentColor;flex:none}
+.chip-live{background:rgba(255,255,255,.12);color:var(--navy-ink);border-color:rgba(255,255,255,.2)}
+
+.wrap{max-width:1500px;margin:0 auto;padding-block:20px 72px;padding-left:16px;padding-right:16px}
+.view[hidden]{display:none!important}
+
+/* ---------- generic ---------- */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow)}
+.panel-hd{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;gap:12px;
+  align-items:center;flex-wrap:wrap}
+.panel-hd h2{font-size:15px}
+.panel-bd{padding:16px}
+.eyebrow{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
+.sub{color:var(--ink-2);font-size:13px}
+.btn{background:var(--surface);border:1px solid var(--line-2);border-radius:7px;padding:7px 13px;
+  font-weight:500;font-size:13px;cursor:pointer}
+.btn:hover{background:var(--surface-3)}
+.btn-primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn-primary:hover{filter:brightness(1.07)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn-sm{padding:4px 9px;font-size:12px}
+input[type=text],input[type=date],input[type=number],select,textarea{
+  background:var(--surface);border:1px solid var(--line-2);border-radius:7px;padding:7px 9px;width:100%}
+textarea{resize:vertical;min-height:62px}
+label.fld{display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:500;color:var(--ink-2)}
+.grid-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:13px}
+.banner{border-radius:9px;padding:12px 14px;display:flex;gap:11px;align-items:flex-start;font-size:13px}
+.banner b{font-weight:600}
+.banner-warn{background:var(--warn-soft);color:var(--warn);border:1px solid color-mix(in srgb,var(--warn) 30%,transparent)}
+.banner-crit{background:var(--crit-soft);color:var(--crit);border:1px solid color-mix(in srgb,var(--crit) 30%,transparent)}
+.banner-good{background:var(--good-soft);color:var(--good);border:1px solid color-mix(in srgb,var(--good) 30%,transparent)}
+.banner-info{background:var(--surface-2);color:var(--ink-2);border:1px solid var(--line)}
+.ico{flex:none;width:17px;height:17px;margin-top:1px}
+
+/* ---------- table ---------- */
+.tbl-scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th{text-align:left;font-weight:600;font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--ink-3);padding:9px 10px;border-bottom:1px solid var(--line-2);white-space:nowrap;
+  background:var(--surface-2);position:sticky;top:0;z-index:1}
+td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+.r{text-align:right}
+tbody tr.row-link{cursor:pointer}
+tbody tr.row-link:hover{background:var(--surface-2)}
+td.stripe{padding-left:0;padding-right:0;width:4px;border-bottom:0}
+.stripe i{display:block;width:4px;height:36px;border-radius:0 3px 3px 0}
+.cname{font-weight:600}
+.cmeta{color:var(--ink-3);font-size:11.5px;margin-top:1px}
+.pill{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:999px;
+  font-size:11.5px;font-weight:600;white-space:nowrap}
+.p-good{background:var(--good-soft);color:var(--good)}
+.p-warn{background:var(--warn-soft);color:var(--warn)}
+.p-crit{background:var(--crit-soft);color:var(--crit)}
+.p-mute{background:var(--surface-3);color:var(--ink-2)}
+.bar{position:relative;height:7px;border-radius:4px;background:var(--surface-3);overflow:hidden;min-width:74px}
+.bar i{position:absolute;inset:0 auto 0 0;border-radius:4px;background:var(--actual)}
+.bar u{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--plan);text-decoration:none}
+
+/* ---------- kpis ---------- */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:12px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:13px 14px}
+.kpi .k{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
+.kpi .v{font-family:var(--mono);font-weight:600;font-size:23px;letter-spacing:-.02em;margin-top:5px;
+  font-variant-numeric:tabular-nums}
+.kpi .s{font-size:11.5px;color:var(--ink-2);margin-top:3px}
+.kpi.lead{border-left:3px solid var(--accent)}
+
+/* ---------- charts ---------- */
+.chart-wrap{position:relative}
+svg.chart{display:block;width:100%;height:auto;overflow:visible}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--ink-2);margin-bottom:10px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.swatch{width:13px;height:3px;border-radius:2px;flex:none}
+.swatch.sq{height:11px;width:11px;border-radius:3px}
+.tip{position:absolute;pointer-events:none;background:var(--surface);border:1px solid var(--line-2);
+  border-radius:8px;padding:8px 10px;font-size:12px;box-shadow:var(--shadow);z-index:20;min-width:132px}
+.tip .t{font-weight:600;margin-bottom:5px;font-size:11.5px}
+.tip .r{display:flex;justify-content:space-between;gap:14px;text-align:left}
+.tip .r b{font-family:var(--mono);font-weight:600;font-variant-numeric:tabular-nums}
+
+/* ---------- detail ---------- */
+.crumb{display:flex;align-items:center;gap:8px;margin-bottom:12px;font-size:13px;color:var(--ink-2)}
+.crumb button{background:none;border:0;color:var(--plan);cursor:pointer;padding:0;font-weight:500}
+.dhead{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;margin-bottom:16px}
+.dhead h1{font-size:25px;letter-spacing:-.02em}
+.facts{display:flex;gap:22px;flex-wrap:wrap;margin-top:8px}
+.fact{font-size:12px}
+.fact .k{color:var(--ink-3);font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;font-weight:600}
+.fact .v{font-weight:500;margin-top:2px}
+.cols{display:grid;gap:16px;grid-template-columns:1fr}
+@media(min-width:1080px){.cols.two{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr)}}
+.seg{display:inline-flex;background:var(--surface-3);border-radius:8px;padding:2px;gap:2px}
+.seg button{background:none;border:0;padding:5px 11px;border-radius:6px;cursor:pointer;
+  font-size:12.5px;font-weight:500;color:var(--ink-2)}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
+.plan-input{width:88px;text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;padding:5px 7px}
+.src-tag{font-size:10px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;
+  padding:1px 5px;border-radius:4px;background:var(--surface-3);color:var(--ink-3)}
+.src-looker{background:color-mix(in srgb,var(--plan) 16%,transparent);color:var(--plan)}
+.src-mct{background:var(--surface-3);color:var(--ink-3)}
+.foot{margin-top:26px;padding-top:14px;border-top:1px solid var(--line);color:var(--ink-3);font-size:12px}
+.mono-s{font-family:var(--mono);font-size:12px}
+.empty{padding:34px 16px;text-align:center;color:var(--ink-3)}
+.audit-row{display:grid;grid-template-columns:150px 1fr;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);font-size:13px}
+@media(max-width:620px){.audit-row{grid-template-columns:1fr}}
+.code{font-family:var(--mono);font-size:12px;background:var(--surface-2);border:1px solid var(--line);
+  border-radius:7px;padding:10px 12px;overflow-x:auto;white-space:pre}
+.tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.srch{max-width:260px}
+.chklist{display:flex;flex-direction:column;gap:9px}
+.chk{display:flex;gap:9px;align-items:flex-start;font-size:13px;line-height:1.45}
+.chk input{margin-top:3px;flex:none;width:auto}
+.dim{color:var(--ink-3)}
+</style>
+
+<header class="topbar">
+  <div class="topbar-in">
+    <a href="./" style="color:var(--navy-ink);opacity:.7;text-decoration:none;font-size:12.5px;white-space:nowrap;" title="Back to Styling Team Master Planner">← Planner</a>
+    <div class="brand"><b>Contract Pacing Desk</b><span>Regular Clients</span></div>
+    <div class="spacer"></div>
+    <span class="chip chip-live" id="connchip"><i class="dot"></i><span id="conntxt">Checking…</span></span>
+    <nav class="tabs" id="tabs" aria-label="Views">
+      <button class="tab" data-v="setup" title="Looker mapping, item definition and the change log">Setup</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="view" id="v-portfolio"></section>
+  <section class="view" id="v-client" hidden></section>
+  <div id="setupcrumb" class="crumb" hidden><button id="setupback">← Back to clients</button><span class="dim">/</span><span>Setup</span></div>
+  <section class="view" id="v-looker" hidden></section>
+  <section class="view" id="v-audit" hidden></section>
+  <p class="foot" id="foot"></p>
+</main>
+
+<script src="contract-tracking-adapter.js"></script>
+<script>
+"use strict";
+/* ============================ helpers ============================ */
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const nf=new Intl.NumberFormat("en-US");
+const n0=v=>v==null||!isFinite(v)?"—":nf.format(Math.round(v));
+const sgn=v=>v==null||!isFinite(v)?"—":(v>0?"+":v<0?"−":"")+nf.format(Math.abs(Math.round(v)));
+const pct=(v,d=0)=>v==null||!isFinite(v)?"—":(v*100).toFixed(d)+"%";
+const ymOf=d=>d.toISOString().slice(0,7);
+const isoOf=d=>d.toISOString().slice(0,10);
+const parseYM=ym=>{const[y,m]=ym.split("-").map(Number);return new Date(Date.UTC(y,m-1,1));};
+const addYM=(ym,n)=>{const[y,m]=ym.split("-").map(Number);const t=y*12+(m-1)+n;
+  return Math.floor(t/12)+"-"+String(t%12+1).padStart(2,"0");};
+const dim=ym=>{const[y,m]=ym.split("-").map(Number);return new Date(Date.UTC(y,m,0)).getUTCDate();};
+const ymLabel=ym=>parseYM(ym).toLocaleDateString("en-US",{month:"short",year:"2-digit",timeZone:"UTC"});
+const dLabel=iso=>iso?new Date(iso+"T00:00:00Z").toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric",timeZone:"UTC"}):"—";
+const ago=ts=>{if(!ts)return"never";const s=(Date.now()-new Date(ts).getTime())/1000;
+  if(s<90)return"just now";if(s<5400)return Math.round(s/60)+" min ago";
+  if(s<172800)return Math.round(s/3600)+" hr ago";return Math.round(s/86400)+" days ago";};
+const clampDay=d=>{const x=new Date(d);x.setUTCHours(0,0,0,0);return x;};
+
+/* ============================ state ============================ */
+const S={
+  db:null,user:null,dl:null,canWrite:null,me:null,ready:false,
+  clients:new Map(),contracts:new Map(),actuals:new Map(),
+  settings:{lookerConnected:false,definitionConfirmed:false,definitionBy:"",definitionAt:"",
+    lastRefresh:null,reportUrl:"",countingNote:"",freshnessHours:36},
+  audit:[],view:"portfolio",termId:null,
+  q:"",statusFilter:"active",grain:"month",sortKey:"variance",sortDir:"asc",
+  profiles:{},
+};
+const AUDIT_DOC="meta/audit-log";
+const SET_DOC="meta/settings";
+
+/* ============================ calc engine ============================ */
+/* Manual plan data and observed actuals are combined here only — never merged in storage. */
+function actualFor(act,ym,useLooker){
+  if(!act)return{v:null,src:"none"};
+  if(useLooker&&act.lookerMonths&&act.lookerMonths[ym]!=null)return{v:act.lookerMonths[ym],src:"looker"};
+  if(act.mctMonths&&act.mctMonths[ym]!=null)return{v:act.mctMonths[ym],src:"mct"};
+  return{v:null,src:"none"};
+}
+function lookerActiveFor(ct){
+  const c=S.clients.get(ct.clientId);
+  return !!(S.settings.lookerConnected&&S.settings.definitionConfirmed&&c&&c.mappingStatus==="confirmed");
+}
+function computeTerm(ct,asOf=new Date()){
+  const act=S.actuals.get(ct.id)||{mctMonths:{},lookerMonths:{},lookerDays:{}};
+  const useLooker=lookerActiveFor(ct);
+  const plan=(ct.plan||[]).slice();
+  const total=Number(ct.contractedItems)||0;
+  const today=clampDay(asOf), nowYM=ymOf(today);
+  const start=ct.startDate, end=ct.endDate;
+  const started=start?isoOf(today)>=start:false;
+  const ended=end?isoOf(today)>end:false;
+
+  let cumT=0,cumA=0,rows=[],planToDate=0,actualToDate=0,missing=[],lastWithData=null;
+  for(const p of plan){
+    const t=Number(p.target)||0; cumT+=t;
+    const a=actualFor(act,p.m,useLooker);
+    let frac=0;
+    if(p.m<nowYM)frac=1;
+    else if(p.m===nowYM)frac=Math.min(1,today.getUTCDate()/dim(p.m));
+    planToDate+=t*frac;
+    const elapsed=p.m<=nowYM&&started;
+    if(a.v!=null){cumA+=a.v;actualToDate+=a.v;lastWithData=p.m;}
+    else if(elapsed&&!ended)missing.push(p.m);
+    else if(elapsed&&ended)missing.push(p.m);
+    rows.push({m:p.m,target:t,cumTarget:cumT,actual:a.v,src:a.src,cumActual:a.v!=null?cumA:null,
+      elapsed,frac,variance:a.v!=null?a.v-t:null,pctOfContract:total?cumT/total:0});
+  }
+  const planSum=cumT;
+  const remaining=total-actualToDate;
+  const pctComplete=total?actualToDate/total:null;
+  const variance=actualToDate-planToDate;
+  const monthsLeft=plan.filter(p=>p.m>=nowYM).length;
+  const requiredRunRate=monthsLeft>0?Math.max(0,remaining)/monthsLeft:null;
+  const curRow=rows.find(r=>r.m===nowYM)||null;
+  const dailyRate=curRow&&curRow.target?curRow.target/dim(nowYM):null;
+  const daysOff=dailyRate?variance/dailyRate:null;
+  const status=!started?"future":ended?"ended":"active";
+  // pacing band
+  let band="on";
+  if(status==="active"&&planToDate>0){
+    const r=variance/planToDate;
+    if(r<=-0.15)band="behind-bad";else if(r<-0.04)band="behind";
+    else if(r>=0.12)band="ahead";
+  }
+  return{ct,act,useLooker,rows,total,planSum,planValid:Math.round(planSum)===Math.round(total),
+    planToDate,actualToDate,remaining,pctComplete,variance,monthsLeft,requiredRunRate,
+    daysOff,status,band,missing,nowYM,curRow,lastWithData,started,ended};
+}
+function dailySeries(ct,fromISO,toISO){
+  const act=S.actuals.get(ct.id);if(!act||!act.lookerDays)return[];
+  return Object.entries(act.lookerDays).filter(([d])=>d>=fromISO&&d<=toISO)
+    .sort((a,b)=>a[0]<b[0]?-1:1).map(([d,v])=>({d,v}));
+}
+function evenSplit(total,months,startYM){
+  total=Math.max(0,Math.round(Number(total)||0));months=Math.max(1,Math.round(Number(months)||1));
+  const base=Math.floor(total/months),rem=total-base*months,out=[];
+  for(let i=0;i<months;i++)out.push({m:addYM(startYM,i),target:base+(i<rem?1:0)});
+  return out;
+}
+function monthsBetween(a,b){
+  const s=parseYM(a.slice(0,7)),e=parseYM(b.slice(0,7));
+  return (e.getUTCFullYear()-s.getUTCFullYear())*12+(e.getUTCMonth()-s.getUTCMonth())+1;
+}
+
+/* ============================ db ============================ */
+async function boot(){
+  try{S.user=await claude.use("user");}catch(e){}
+  try{S.dl=await claude.use("downloads");}catch(e){}
+  if(S.user){
+    try{S.canWrite=await S.user.can("data.write");}catch(e){S.canWrite=null;}
+    try{S.me=await S.user.id();}catch(e){}
+  }
+  try{S.db=await claude.use("db");}catch(e){}
+  if(!S.db){S.ready=true;setConn("offline");render();return;}
+  const bind=(path,sink)=>S.db.collection(path).onSnapshot(sn=>{
+    sink.clear();sn.docs.forEach(d=>sink.set(d.id,{id:d.id,...d.data()}));
+    S.ready=true;render();
+  },e=>{console.warn(path,e.code);S.ready=true;render();});
+  bind("clients",S.clients);bind("contracts",S.contracts);bind("actuals",S.actuals);
+  S.db.doc(SET_DOC).onSnapshot(sn=>{if(sn.exists)Object.assign(S.settings,sn.data());setConn();render();},()=>{});
+  S.db.doc(AUDIT_DOC).onSnapshot(sn=>{S.audit=(sn.exists&&sn.data().entries)||[];render();},()=>{});
+  setConn();
+}
+function setConn(force){
+  const c=$("#connchip"),t=$("#conntxt");if(!c)return;
+  if(force==="offline"){t.textContent="Storage unavailable";c.style.color="#F0A0A0";return;}
+  const s=S.settings;
+  if(!s.lookerConnected){t.textContent="Looker: not connected";c.style.color="#F2C879";}
+  else if(!s.definitionConfirmed){t.textContent="Looker: definition unconfirmed";c.style.color="#F2C879";}
+  else{
+    const stale=s.lastRefresh&&(Date.now()-new Date(s.lastRefresh))/36e5>(s.freshnessHours||36);
+    t.textContent="Looker: "+ago(s.lastRefresh)+(stale?" · stale":"");
+    c.style.color=stale?"#F2C879":"#8FE3BE";
+  }
+}
+async function saveSettings(patch,auditMsg){
+  Object.assign(S.settings,patch);setConn();
+  if(!S.db)return;
+  try{await S.db.doc(SET_DOC).set({...S.settings});}catch(e){toast("Could not save: "+e.code);}
+  if(auditMsg)await logAudit(auditMsg.what,auditMsg.detail,auditMsg.scope);
+}
+async function logAudit(what,detail,scope){
+  if(!S.db)return;
+  const e={at:new Date().toISOString(),by:S.me||"unknown",what,detail:detail||"",scope:scope||""};
+  const next=[e,...S.audit].slice(0,400);
+  try{await S.db.doc(AUDIT_DOC).set({entries:next});}catch(err){}
+}
+function writable(){return S.canWrite!==false;}
+function toast(msg){
+  let t=$("#toast");if(!t){t=document.createElement("div");t.id="toast";
+    t.style.cssText="position:fixed;left:50%;transform:translateX(-50%);bottom:22px;z-index:99;background:var(--ink);color:var(--ground);padding:9px 15px;border-radius:8px;font-size:13px;box-shadow:var(--shadow)";
+    document.body.appendChild(t);}
+  t.textContent=msg;t.hidden=false;clearTimeout(t._h);t._h=setTimeout(()=>t.hidden=true,3200);
+}
+async function resolveNames(ids){
+  if(!S.user||!ids.length)return;
+  try{const p=await S.user.profiles(ids);Object.assign(S.profiles,p);render();}catch(e){}
+}
+const nameOf=id=>id&&S.profiles[id]?(S.profiles[id].name||"Someone"):(id?"Someone":"—");
+
+/* ============================ router ============================ */
+function go(v,termId){S.view=v;if(termId!==undefined)S.termId=termId;
+  $$("#tabs .tab").forEach(b=>b.setAttribute("aria-current",b.dataset.v===v?"page":"false"));
+  const sb=$("#setupback");if(sb&&!sb._w){sb._w=1;sb.addEventListener("click",()=>go("portfolio"));}
+  window.scrollTo({top:0,behavior:"instant"});render();}
+$("#tabs").addEventListener("click",e=>{const b=e.target.closest(".tab");if(b)go(b.dataset.v);});
+
+function render(){
+  const setup=S.view==="setup";
+  $("#v-portfolio").hidden=S.view!=="portfolio";
+  $("#v-client").hidden=S.view!=="client";
+  $("#v-looker").hidden=!setup; $("#v-audit").hidden=!setup; $("#setupcrumb").hidden=!setup;
+  if(S.view==="portfolio")renderPortfolio();
+  else if(S.view==="client")renderClient();
+  else if(setup){renderLooker();renderAudit();}
+  $("#foot").innerHTML=S.ready
+    ?`${S.contracts.size} contract terms · ${S.clients.size} clients · plan &amp; contract data entered by Ops; items-styled actuals sourced separately and labelled per row.`
+    :"Loading…";
+}
+
+/* ============================ portfolio ============================ */
+const BAND={ "ahead":{c:"var(--good)",l:"Ahead"},"on":{c:"var(--line-2)",l:"On plan"},
+  "behind":{c:"var(--warn)",l:"Behind"},"behind-bad":{c:"var(--crit)",l:"Well behind"}};
+function bandPill(k,v){
+  if(k==="future")return'<span class="pill p-mute">Not started</span>';
+  if(k==="ended")return'<span class="pill p-mute">Term ended</span>';
+  const cls=k==="ahead"?"p-good":k==="behind"?"p-warn":k==="behind-bad"?"p-crit":"p-mute";
+  return`<span class="pill ${cls}">${sgn(v)}</span>`;
+}
+function portfolioRows(){
+  let list=[...S.contracts.values()].map(ct=>computeTerm(ct));
+  if(S.statusFilter!=="all")list=list.filter(r=>r.status===S.statusFilter);
+  if(S.q.trim()){const q=S.q.toLowerCase();
+    list=list.filter(r=>r.ct.clientName.toLowerCase().includes(q)
+      ||(r.ct.amLead||"").toLowerCase().includes(q)||(r.ct.opsLead||"").toLowerCase().includes(q));}
+  const k=S.sortKey,dir=S.sortDir==="asc"?1:-1;
+  const val=r=>({client:r.ct.clientName.toLowerCase(),variance:r.variance,pct:r.pctComplete??-1,
+    remaining:r.remaining,total:r.total,end:r.ct.endDate||""}[k]);
+  list.sort((a,b)=>{const x=val(a),y=val(b);
+    if(typeof x==="string")return x<y?-dir:x>y?dir:0;
+    return ((x??-1e15)-(y??-1e15))*dir;});
+  return list;
+}
+function renderPortfolio(){
+  const rows=portfolioRows();
+  const badPlans=[...S.contracts.values()].map(c=>computeTerm(c)).filter(r=>!r.planValid&&r.total>0).length;
+  const warn=badPlans?[`<div class="banner banner-crit" style="margin-bottom:14px"><svg class="ico" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M10 2a8 8 0 100 16 8 8 0 000-16zm0 4a1 1 0 011 1v4a1 1 0 11-2 0V7a1 1 0 011-1zm0 8.5a1.1 1.1 0 110-2.2 1.1 1.1 0 010 2.2z"/></svg><div><b>${badPlans} pacing plan${badPlans>1?"s do":" does"} not sum to the contracted total.</b> Open the client and rebalance before sharing the plan.</div></div>`]:[];
+
+  $("#v-portfolio").innerHTML=`
+  ${warn.join("")}
+  <div class="panel">
+    <div class="panel-hd">
+      <h2>Regular clients</h2>
+      <div class="spacer"></div>
+      <div class="tools">
+        <input type="text" class="srch" id="q" placeholder="Search client or lead" value="${esc(S.q)}" aria-label="Search">
+        <div class="seg" id="statusseg" role="group" aria-label="Term status">
+          ${["active","future","ended","all"].map(k=>`<button data-s="${k}" aria-pressed="${S.statusFilter===k}">${k[0].toUpperCase()+k.slice(1)}</button>`).join("")}
+        </div>
+        <button class="btn btn-sm" id="exp">Export CSV</button>
+        <button class="btn btn-sm btn-primary" id="newct">New contract term</button>
+      </div>
+    </div>
+    <div class="tbl-scroll">
+    <table>
+      <thead><tr>
+        <th style="width:4px"></th>
+        ${th("client","Client / term")}
+        <th>Contract dates</th>
+        ${th("total","Contracted",1)}
+        <th class="r">Styled to date</th>
+        ${th("remaining","Remaining",1)}
+        ${th("pct","% of contract",1)}
+        <th>This month</th>
+        ${th("variance","Vs. plan",1)}
+      </tr></thead>
+      <tbody>${rows.map(rowHTML).join("")||`<tr><td colspan="9" class="empty">No terms match this filter.</td></tr>`}</tbody>
+    </table></div>
+  </div>`;
+
+  $("#q").addEventListener("input",e=>{S.q=e.target.value;const p=e.target.selectionStart;
+    renderPortfolio();const q=$("#q");q.focus();q.setSelectionRange(p,p);});
+  $("#statusseg").addEventListener("click",e=>{const b=e.target.closest("button");
+    if(b){S.statusFilter=b.dataset.s;renderPortfolio();}});
+  $$("#v-portfolio th[data-k]").forEach(h=>h.addEventListener("click",()=>{
+    const k=h.dataset.k;if(S.sortKey===k)S.sortDir=S.sortDir==="asc"?"desc":"asc";
+    else{S.sortKey=k;S.sortDir=k==="client"?"asc":"desc";}renderPortfolio();}));
+  $$("#v-portfolio tbody tr.row-link").forEach(tr=>tr.addEventListener("click",()=>go("client",tr.dataset.id)));
+  $("#exp").addEventListener("click",exportCSV);
+  $("#newct").addEventListener("click",()=>openContractForm(null));
+  $$("[data-go]").forEach(b=>b.addEventListener("click",e=>{e.stopPropagation();go(b.dataset.go);}));
+}
+function th(k,label,right){
+  const on=S.sortKey===k;
+  return`<th data-k="${k}" class="${right?"r":""}" style="cursor:pointer" title="Sort by ${label}">${label}${on?(S.sortDir==="asc"?" ▲":" ▼"):""}</th>`;
+}
+function rowHTML(r){
+  const ct=r.ct,cl=S.clients.get(ct.clientId);
+  const b=BAND[r.status==="active"?r.band:"on"];
+  const stripe=r.status==="active"?b.c:"var(--line)";
+  const cur=r.curRow;
+  const curCell=r.status!=="active"||!cur?'<span class="dim">—</span>':
+    `<div style="display:flex;align-items:center;gap:8px">
+       <span class="num" style="font-size:12.5px">${n0(cur.actual)}<span class="dim"> / ${n0(cur.target)}</span></span>
+       <div class="bar" style="flex:1"><i style="width:${Math.min(100,cur.target?(cur.actual||0)/cur.target*100:0)}%"></i><u style="left:${Math.min(100,cur.frac*100)}%"></u></div>
+     </div>`;
+  const pctBar=r.total?`<div style="display:flex;align-items:center;gap:8px;justify-content:flex-end">
+      <span class="num">${pct(r.pctComplete,1)}</span>
+      <div class="bar" style="width:70px"><i style="width:${Math.min(100,(r.pctComplete||0)*100)}%"></i><u style="left:${Math.min(100,r.total?r.planToDate/r.total*100:0)}%"></u></div></div>`:"—";
+  const termTag=ct.termNo>1?`<span class="src-tag" title="Renewal — tracked as its own contract term">Term ${ct.termNo}</span>`:"";
+  const miss=r.missing.length?`<span class="src-tag" style="background:var(--warn-soft);color:var(--warn)" title="No items-styled data for: ${r.missing.map(ymLabel).join(", ")}">${r.missing.length} mo. missing</span>`:"";
+  const planbad=!r.planValid&&r.total?`<span class="src-tag" style="background:var(--crit-soft);color:var(--crit)" title="Monthly targets sum to ${n0(r.planSum)}, contract is ${n0(r.total)}">plan ≠ total</span>`:"";
+  return`<tr class="row-link" data-id="${esc(ct.id)}" tabindex="0">
+    <td class="stripe"><i style="background:${stripe}"></i></td>
+    <td><div class="cname">${esc(ct.clientName)} ${termTag}</div>
+        <div class="cmeta">AM ${esc(ct.amLead||"—")} · Ops ${esc(ct.opsLead||"—")} ${miss} ${planbad}</div></td>
+    <td class="mono-s" style="white-space:nowrap">${dLabel(ct.startDate)}<br><span class="dim">${dLabel(ct.endDate)}</span></td>
+    <td class="r num">${n0(r.total)}</td>
+    <td class="r num">${n0(r.actualToDate)}${r.useLooker?'<span class="src-tag src-looker" style="margin-left:5px">LKR</span>':'<span class="src-tag src-mct" style="margin-left:5px">MCT</span>'}</td>
+    <td class="r num" style="${r.remaining<0?"color:var(--good)":""}">${n0(r.remaining)}</td>
+    <td class="r">${pctBar}</td>
+    <td style="min-width:150px">${curCell}</td>
+    <td class="r">${bandPill(r.status,r.variance)}${r.daysOff!=null&&r.status==="active"?`<div class="cmeta num">${Math.abs(r.daysOff)<0.5?"on pace":(Math.abs(r.daysOff)).toFixed(1)+" d "+(r.daysOff>0?"ahead":"behind")}</div>`:""}</td>
+  </tr>`;
+}
+
+/* ============================ charts ============================ */
+function niceMax(v){if(!v||!isFinite(v))return 10;const e=Math.pow(10,Math.floor(Math.log10(v)));
+  const n=v/e;return (n<=1?1:n<=2?2:n<=2.5?2.5:n<=5?5:10)*e;}
+function axisTicks(max,n=4){const out=[];for(let i=0;i<=n;i++)out.push(max*i/n);return out;}
+
+function cumChart(r){
+  const pts=r.rows;if(!pts.length)return`<div class="empty">No pacing plan yet.</div>`;
+  const W=760,H=270,P={t:16,r:18,b:30,l:58};
+  const iw=W-P.l-P.r,ih=H-P.t-P.b;
+  const maxY=niceMax(Math.max(r.total||0,...pts.map(p=>p.cumTarget||0),...pts.map(p=>p.cumActual||0)));
+  const X=i=>P.l+(pts.length===1?iw/2:iw*i/(pts.length-1));
+  const Y=v=>P.t+ih-(maxY?ih*v/maxY:0);
+  const line=(f,upto)=>pts.map((p,i)=>(i>upto?null:`${i?"L":"M"}${X(i).toFixed(1)},${Y(f(p)).toFixed(1)}`))
+    .filter(Boolean).join(" ");
+  const lastA=pts.reduce((a,p,i)=>p.cumActual!=null?i:a,-1);
+  const aPath=lastA>=0?line(p=>p.cumActual??0,lastA):"";
+  const areaA=lastA>=0?`${aPath} L${X(lastA).toFixed(1)},${Y(0).toFixed(1)} L${X(0).toFixed(1)},${Y(0).toFixed(1)} Z`:"";
+  const tPath=line(p=>p.cumTarget,pts.length-1);
+  const step=pts.length>14?Math.ceil(pts.length/8):pts.length>8?2:1;
+  return`
+  <div class="legend">
+    <span><i class="swatch" style="background:var(--plan)"></i>Cumulative pacing target</span>
+    <span><i class="swatch" style="background:var(--actual)"></i>Cumulative items styled</span>
+    <span><i class="swatch" style="background:var(--ink-3);height:0;border-top:2px dashed var(--ink-3)"></i>Contract total ${n0(r.total)}</span>
+  </div>
+  <div class="chart-wrap" id="cumwrap">
+  <svg class="chart" viewBox="0 0 ${W} ${H}" role="img"
+     aria-label="Cumulative items styled against the cumulative pacing target across the contract term.">
+    ${axisTicks(maxY).map(v=>`<g><line x1="${P.l}" x2="${W-P.r}" y1="${Y(v).toFixed(1)}" y2="${Y(v).toFixed(1)}"
+        stroke="var(--line)" stroke-width="1"/>
+      <text x="${P.l-9}" y="${(Y(v)+4).toFixed(1)}" text-anchor="end" font-size="11"
+        fill="var(--ink-3)" font-family="var(--mono)">${n0(v)}</text></g>`).join("")}
+    ${r.total&&r.total<=maxY?`<line x1="${P.l}" x2="${W-P.r}" y1="${Y(r.total).toFixed(1)}" y2="${Y(r.total).toFixed(1)}"
+        stroke="var(--ink-3)" stroke-width="2" stroke-dasharray="5 4"/>`:""}
+    ${pts.map((p,i)=>i%step===0?`<text x="${X(i).toFixed(1)}" y="${H-10}" text-anchor="middle" font-size="11"
+        fill="var(--ink-3)">${ymLabel(p.m)}</text>`:"").join("")}
+    ${areaA?`<path d="${areaA}" fill="var(--actual)" opacity=".10"/>`:""}
+    <path d="${tPath}" fill="none" stroke="var(--plan)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+    ${aPath?`<path d="${aPath}" fill="none" stroke="var(--actual)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`:""}
+    ${lastA>=0?`<circle cx="${X(lastA).toFixed(1)}" cy="${Y(pts[lastA].cumActual).toFixed(1)}" r="4.5"
+        fill="var(--actual)" stroke="var(--surface)" stroke-width="2"/>`:""}
+    <line id="cross" x1="0" x2="0" y1="${P.t}" y2="${P.t+ih}" stroke="var(--ink-3)" stroke-width="1" opacity="0"/>
+    <rect id="hit" x="${P.l}" y="${P.t}" width="${iw}" height="${ih}" fill="transparent" style="cursor:crosshair"/>
+  </svg>
+  <div class="tip" id="cumtip" hidden></div></div>`;
+}
+function wireCum(r){
+  const wrap=$("#cumwrap");if(!wrap)return;
+  const svg=wrap.querySelector("svg"),hit=wrap.querySelector("#hit"),
+    cross=wrap.querySelector("#cross"),tip=$("#cumtip"),pts=r.rows;
+  const W=760,P={l:58,r:18},iw=W-P.l-P.r;
+  const move=e=>{
+    const b=svg.getBoundingClientRect(),sx=(e.clientX-b.left)/b.width*W;
+    let i=Math.round((sx-P.l)/(pts.length>1?iw/(pts.length-1):iw));
+    i=Math.max(0,Math.min(pts.length-1,i));const p=pts[i];
+    const x=P.l+(pts.length>1?iw*i/(pts.length-1):iw/2);
+    cross.setAttribute("x1",x);cross.setAttribute("x2",x);cross.setAttribute("opacity",".45");
+    tip.hidden=false;
+    tip.innerHTML=`<div class="t">${ymLabel(p.m)}</div>
+      <div class="r"><span>Target (cum.)</span><b>${n0(p.cumTarget)}</b></div>
+      <div class="r"><span>Styled (cum.)</span><b>${p.cumActual!=null?n0(p.cumActual):"no data"}</b></div>
+      <div class="r"><span>Month target</span><b>${n0(p.target)}</b></div>
+      <div class="r"><span>Month styled</span><b>${p.actual!=null?n0(p.actual):"—"}</b></div>`;
+    const px=x/W*b.width;
+    tip.style.left=Math.max(4,Math.min(b.width-150,px+12))+"px";tip.style.top="8px";
+  };
+  hit.addEventListener("mousemove",move);
+  hit.addEventListener("mouseleave",()=>{tip.hidden=true;cross.setAttribute("opacity","0");});
+}
+function barChart(items,labelFn,opts={}){
+  if(!items.length)return`<div class="empty">${opts.empty||"No data for this range."}</div>`;
+  const W=760,H=opts.h||210,P={t:14,r:14,b:30,l:54};
+  const iw=W-P.l-P.r,ih=H-P.t-P.b;
+  const maxY=niceMax(Math.max(1,...items.map(d=>Math.max(d.a||0,d.t||0))));
+  const slot=iw/items.length, gw=Math.min(34,slot*0.74), bw=opts.dual?(gw-2)/2:gw;
+  const Y=v=>P.t+ih-(ih*v/maxY);
+  const step=items.length>16?Math.ceil(items.length/9):items.length>9?2:1;
+  const bars=items.map((d,i)=>{
+    const cx=P.l+slot*i+slot/2;
+    const mk=(v,x,col)=>{if(v==null)return"";const h=Math.max(v>0?2:0,ih-(Y(v)-P.t));
+      return`<rect x="${(x).toFixed(1)}" y="${Y(v).toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" rx="3" fill="${col}"/>`;};
+    return opts.dual
+      ?mk(d.t,cx-bw-1,"var(--plan)")+mk(d.a,cx+1,"var(--actual)")
+      :mk(d.a,cx-bw/2,"var(--actual)");
+  }).join("");
+  return`<div class="chart-wrap"><svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(opts.alt||"Items styled by period.")}">
+    ${axisTicks(maxY,3).map(v=>`<g><line x1="${P.l}" x2="${W-P.r}" y1="${Y(v).toFixed(1)}" y2="${Y(v).toFixed(1)}" stroke="var(--line)"/>
+      <text x="${P.l-9}" y="${(Y(v)+4).toFixed(1)}" text-anchor="end" font-size="11" fill="var(--ink-3)" font-family="var(--mono)">${n0(v)}</text></g>`).join("")}
+    ${bars}
+    ${items.map((d,i)=>i%step===0?`<text x="${(P.l+slot*i+slot/2).toFixed(1)}" y="${H-10}" text-anchor="middle" font-size="10.5" fill="var(--ink-3)">${esc(labelFn(d))}</text>`:"").join("")}
+  </svg></div>`;
+}
+
+/* ============================ client detail ============================ */
+let draftPlan=null,draftFor=null;
+function renderClient(){
+  const ct=S.contracts.get(S.termId);
+  if(!ct){$("#v-client").innerHTML=`<div class="panel"><div class="empty">Contract term not found. <button class="btn btn-sm" onclick="go('portfolio')">Back to portfolio</button></div></div>`;return;}
+  if(draftFor!==ct.id){draftPlan=(ct.plan||[]).map(p=>({...p}));draftFor=ct.id;}
+  const r=computeTerm(ct);
+  const cl=S.clients.get(ct.clientId)||{};
+  const terms=[...S.contracts.values()].filter(c=>c.clientId===ct.clientId).sort((a,b)=>a.startDate<b.startDate?-1:1);
+  const draftSum=draftPlan.reduce((a,p)=>a+(Number(p.target)||0),0);
+  const dirty=JSON.stringify(draftPlan)!==JSON.stringify(ct.plan||[]);
+  const ro=!writable();
+
+  const banners=[];
+  if(r.missing.length)banners.push(`<div class="banner banner-warn"><svg class="ico" viewBox="0 0 20 20" fill="currentColor"><path d="M10 2a8 8 0 100 16 8 8 0 000-16zm0 4a1 1 0 011 1v4a1 1 0 11-2 0V7a1 1 0 011-1zm0 8.5a1.1 1.1 0 110-2.2 1.1 1.1 0 010 2.2z"/></svg><div><b>No items-styled data for ${r.missing.length} elapsed month${r.missing.length>1?"s":""}:</b> ${r.missing.map(ymLabel).join(", ")}. Completion and variance below exclude ${r.missing.length>1?"these months":"this month"} — they are gaps, not zeros.</div></div>`);
+  if(!r.planValid&&r.total)banners.push(`<div class="banner banner-crit"><svg class="ico" viewBox="0 0 20 20" fill="currentColor"><path d="M10 2a8 8 0 100 16 8 8 0 000-16zm0 4a1 1 0 011 1v4a1 1 0 11-2 0V7a1 1 0 011-1zm0 8.5a1.1 1.1 0 110-2.2 1.1 1.1 0 010 2.2z"/></svg><div><b>Monthly targets sum to ${n0(r.planSum)}, but the contract is ${n0(r.total)}.</b> Rebalance the plan below.</div></div>`);
+  banners.push(r.useLooker
+    ?`<div class="banner banner-good"><svg class="ico" viewBox="0 0 20 20" fill="currentColor"><path d="M8.2 13.4L5 10.2l1.4-1.4 1.8 1.8 5-5L14.6 7z"/><path d="M10 2a8 8 0 100 16 8 8 0 000-16zm0 2a6 6 0 110 12 6 6 0 010-12z"/></svg><div>Actuals are coming from <b>Looker</b> for this client — mapping and counting definition both confirmed. Last refresh ${ago(S.settings.lastRefresh)}.</div></div>`
+    :`<div class="banner banner-info"><svg class="ico" viewBox="0 0 20 20" fill="currentColor"><path d="M10 2a8 8 0 100 16 8 8 0 000-16zm1 12H9V9h2zm0-7H9V5h2z"/></svg><div>Actuals are the <b>hand-maintained MCT monthly figures</b>. ${cl.mappingStatus!=="confirmed"?`This client has no confirmed Looker account mapping — <button class="btn btn-sm" data-go="setup">resolve mapping</button>`:"The Looker feed is not yet live."}</div></div>`);
+
+  $("#v-client").innerHTML=`
+  <div class="crumb"><button id="back">← Portfolio</button><span class="dim">/</span><span>${esc(ct.clientName)}</span></div>
+  <div class="dhead">
+    <div style="flex:1 1 320px">
+      <h1>${esc(ct.clientName)}</h1>
+      <div style="display:flex;gap:8px;align-items:center;margin-top:7px;flex-wrap:wrap">
+        ${bandPill(r.status,r.variance)}
+        <span class="pill p-mute">Term ${ct.termNo} of ${terms.length}</span>
+        ${terms.length>1?`<select id="termsel" style="width:auto;padding:3px 8px;font-size:12px">${terms.map(t=>`<option value="${esc(t.id)}" ${t.id===ct.id?"selected":""}>Term ${t.termNo}: ${dLabel(t.startDate)} – ${dLabel(t.endDate)}</option>`).join("")}</select>`:""}
+      </div>
+      <div class="facts">
+        <div class="fact"><div class="k">Contract</div><div class="v">${dLabel(ct.startDate)} – ${dLabel(ct.endDate)}</div></div>
+        <div class="fact"><div class="k">Styling start</div><div class="v">${ct.stylingStartDate?dLabel(ct.stylingStartDate):'<span class="dim">not captured</span>'}</div></div>
+        <div class="fact"><div class="k">Duration</div><div class="v">${ct.durationMonths} months</div></div>
+        <div class="fact"><div class="k">Contracted items</div><div class="v num">${n0(ct.contractedItems)}</div></div>
+        <div class="fact"><div class="k">Account lead</div><div class="v">${esc(ct.amLead||"—")}</div></div>
+        <div class="fact"><div class="k">Ops lead</div><div class="v">${esc(ct.opsLead||"—")}</div></div>
+      </div>
+      ${ct.notes?`<p class="sub" style="margin:10px 0 0"><b>Contract note:</b> ${esc(ct.notes)}</p>`:""}
+    </div>
+    <div style="display:flex;gap:8px"><button class="btn" id="editct" ${ro?"disabled":""}>Edit contract</button></div>
+  </div>
+
+  <div class="kpis" style="margin-bottom:14px">
+    <div class="kpi lead"><div class="k">Styled to date</div><div class="v">${n0(r.actualToDate)}</div>
+      <div class="s">${r.useLooker?"Looker":"MCT manual"} · through ${r.lastWithData?ymLabel(r.lastWithData):"—"}</div></div>
+    <div class="kpi"><div class="k">Items remaining</div><div class="v">${n0(r.remaining)}</div>
+      <div class="s">${r.monthsLeft} month${r.monthsLeft===1?"":"s"} left in term</div></div>
+    <div class="kpi"><div class="k">% of contract</div><div class="v">${pct(r.pctComplete,1)}</div>
+      <div class="s">plan says ${pct(r.total?r.planToDate/r.total:null,1)} by today</div></div>
+    <div class="kpi"><div class="k">Vs. pacing plan</div>
+      <div class="v" style="color:${r.variance>=0?"var(--good)":"var(--crit)"}">${sgn(r.variance)}</div>
+      <div class="s">${r.daysOff!=null?(Math.abs(r.daysOff)<0.5?"on pace":Math.abs(r.daysOff).toFixed(1)+" days "+(r.daysOff>0?"ahead":"behind")):"—"}</div></div>
+    <div class="kpi"><div class="k">Required run rate</div><div class="v">${n0(r.requiredRunRate)}</div>
+      <div class="s">per month to finish the term</div></div>
+  </div>
+  ${banners.join("")}
+
+  <div class="cols two" style="margin-top:14px">
+    <div class="panel"><div class="panel-hd"><h2>Cumulative pacing</h2>
+      <div class="spacer"></div><span class="sub">plan vs. actual across the term</span></div>
+      <div class="panel-bd">${cumChart(r)}</div></div>
+    <div class="panel"><div class="panel-hd"><h2>Items styled</h2><div class="spacer"></div>
+      <div class="seg" id="grainseg" role="group" aria-label="Time grain">
+        ${["day","week","month"].map(g=>`<button data-g="${g}" aria-pressed="${S.grain===g}">${g[0].toUpperCase()+g.slice(1)+"ly"}</button>`).join("")}
+      </div></div>
+      <div class="panel-bd" id="grainbody">${grainBody(r)}</div></div>
+  </div>
+
+  <div class="panel" style="margin-top:16px">
+    <div class="panel-hd"><h2>Monthly pacing plan</h2>
+      <span class="src-tag">${ct.planSource==="even_split_default"?"even split — not yet tailored":"edited by Ops"}</span>
+      <div class="spacer"></div>
+      <div class="tools">
+        <button class="btn btn-sm" id="evensplit" ${ro?"disabled":""}>Reset to even split</button>
+        <button class="btn btn-sm" id="balance" ${ro?"disabled":""}>Balance remainder into last month</button>
+        <button class="btn btn-sm btn-primary" id="saveplan" ${(!dirty||ro)?"disabled":""}>Save plan</button>
+      </div>
+    </div>
+    <div class="tbl-scroll"><table>
+      <thead><tr><th>Month</th><th class="r">Monthly target</th><th class="r">Cumulative target</th>
+        <th class="r">% of contract</th><th class="r">Items styled</th><th class="r">Vs. target</th><th>Source</th><th>Priority / focus</th></tr></thead>
+      <tbody>${planRows(ct,r,draftPlan)}</tbody>
+      <tfoot><tr style="background:var(--surface-2);font-weight:600">
+        <td>Total</td>
+        <td class="r num" style="color:${Math.round(draftSum)===Math.round(r.total)?"var(--good)":"var(--crit)"}">${n0(draftSum)}</td>
+        <td class="r num dim">contract ${n0(r.total)}</td>
+        <td class="r num">${pct(r.total?draftSum/r.total:null,1)}</td>
+        <td class="r num">${n0(r.actualToDate)}</td>
+        <td class="r num">${sgn(r.actualToDate-draftPlan.filter(p=>p.m<=r.nowYM).reduce((a,p)=>a+(Number(p.target)||0),0))}</td>
+        <td colspan="2">${Math.round(draftSum)===Math.round(r.total)?'<span class="pill p-good">Sums to contract</span>':`<span class="pill p-crit">${sgn(draftSum-r.total)} vs contract</span>`}</td>
+      </tr></tfoot>
+    </table></div>
+    <div class="panel-bd" style="border-top:1px solid var(--line);padding-top:12px">
+      <p class="sub" style="margin:0">An item is one colorway of a product styled three ways, unless this client's coverage
+      multiplier says otherwise (currently <b>${esc(String((cl.coverageMultiplier??3)))}×</b>${cl.coverageConfirmed?"":", unconfirmed"}).
+      Targets are entered by Ops; styled figures are never edited here.</p>
+    </div>
+  </div>`;
+
+  $("#back").addEventListener("click",()=>go("portfolio"));
+  $("#editct").addEventListener("click",()=>openContractForm(ct.id));
+  const ts=$("#termsel");if(ts)ts.addEventListener("change",e=>{draftFor=null;go("client",e.target.value);});
+  $("#grainseg").addEventListener("click",e=>{const b=e.target.closest("button");
+    if(b){S.grain=b.dataset.g;$("#grainbody").innerHTML=grainBody(computeTerm(ct));
+      $$("#grainseg button").forEach(x=>x.setAttribute("aria-pressed",x.dataset.g===S.grain));}});
+  $$("#v-client .plan-input").forEach(inp=>inp.addEventListener("input",e=>{
+    const i=+e.target.dataset.i;draftPlan[i].target=Math.max(0,Math.round(+e.target.value||0));
+    const sum=draftPlan.reduce((a,p)=>a+(Number(p.target)||0),0);
+    $("#saveplan").disabled=!writable();
+    const tf=$("#v-client tfoot tr");
+    if(tf){tf.children[1].textContent=n0(sum);
+      tf.children[1].style.color=Math.round(sum)===Math.round(r.total)?"var(--good)":"var(--crit)";
+      tf.children[3].textContent=pct(r.total?sum/r.total:null,1);
+      tf.children[6].innerHTML=Math.round(sum)===Math.round(r.total)?'<span class="pill p-good">Sums to contract</span>':`<span class="pill p-crit">${sgn(sum-r.total)} vs contract</span>`;}
+    let c=0;$$("#v-client tbody tr").forEach((tr,i)=>{if(!draftPlan[i])return;c+=Number(draftPlan[i].target)||0;
+      const cells=tr.children;cells[2].textContent=n0(c);cells[3].textContent=pct(r.total?c/r.total:null,1);});
+  }));
+  $$("#v-client .prio-input").forEach(inp=>inp.addEventListener("change",e=>{
+    draftPlan[+e.target.dataset.i].note=e.target.value;$("#saveplan").disabled=!writable();}));
+  $("#evensplit").addEventListener("click",()=>{
+    draftPlan=evenSplit(ct.contractedItems,ct.durationMonths,(ct.startDate||"").slice(0,7))
+      .map((p,i)=>({...p,note:(draftPlan[i]||{}).note||""}));renderClient();});
+  $("#balance").addEventListener("click",()=>{
+    const sum=draftPlan.reduce((a,p)=>a+(Number(p.target)||0),0),d=(ct.contractedItems||0)-sum;
+    if(draftPlan.length)draftPlan[draftPlan.length-1].target=Math.max(0,(Number(draftPlan[draftPlan.length-1].target)||0)+d);
+    renderClient();});
+  $("#saveplan").addEventListener("click",()=>savePlan(ct,r));
+  $$("#v-client [data-go]").forEach(b=>b.addEventListener("click",()=>go(b.dataset.go)));
+  wireCum(r);
+}
+function planRows(ct,r,draft){
+  const ro=!writable();let cum=0;
+  return draft.map((p,i)=>{
+    const t=Number(p.target)||0;cum+=t;
+    const row=r.rows.find(x=>x.m===p.m)||{};
+    const a=row.actual,v=a!=null?a-t:null;
+    const isNow=p.m===r.nowYM;
+    return`<tr ${isNow?'style="background:var(--accent-soft)"':""}>
+      <td style="white-space:nowrap"><b>${ymLabel(p.m)}</b>${isNow?' <span class="src-tag" style="background:var(--accent);color:#fff">now</span>':""}</td>
+      <td class="r"><input class="plan-input" type="number" min="0" step="1" data-i="${i}" id="pt-${esc(ct.id)}-${i}" value="${t}" ${ro?"disabled":""} aria-label="Target for ${ymLabel(p.m)}"></td>
+      <td class="r num">${n0(cum)}</td>
+      <td class="r num">${pct(r.total?cum/r.total:null,0)}</td>
+      <td class="r num">${a!=null?n0(a):'<span class="dim">'+(row.elapsed?"missing":"—")+"</span>"}</td>
+      <td class="r num" style="color:${v==null?"":v>=0?"var(--good)":"var(--crit)"}">${v==null?"—":sgn(v)}</td>
+      <td>${a==null?'<span class="src-tag">—</span>':`<span class="src-tag ${row.src==="looker"?"src-looker":"src-mct"}">${row.src==="looker"?"Looker":"MCT"}</span>`}</td>
+      <td><input class="prio-input" type="text" data-i="${i}" id="pn-${esc(ct.id)}-${i}" value="${esc(p.note||"")}" placeholder="e.g. spring collection" ${ro?"disabled":""} aria-label="Priority for ${ymLabel(p.m)}"></td>
+    </tr>`;}).join("");
+}
+function grainBody(r){
+  const ct=r.ct;
+  if(S.grain==="month"){
+    const items=r.rows.map(p=>({k:p.m,t:p.target,a:p.actual}));
+    return`<div class="legend"><span><i class="swatch sq" style="background:var(--plan)"></i>Monthly target</span>
+      <span><i class="swatch sq" style="background:var(--actual)"></i>Items styled</span></div>`
+      +barChart(items,d=>ymLabel(d.k),{dual:true,alt:"Monthly items styled against the monthly pacing target."});
+  }
+  const hasDaily=r.act&&r.act.lookerDays&&Object.keys(r.act.lookerDays).length;
+  if(!hasDaily)return`<div class="banner banner-info"><svg class="ico" viewBox="0 0 20 20" fill="currentColor"><path d="M10 2a8 8 0 100 16 8 8 0 000-16zm1 12H9V9h2zm0-7H9V5h2z"/></svg>
+    <div><b>Daily and weekly views need the Looker daily feed.</b> The MCT only ever held month totals, so there is nothing finer to show for this client yet.</div></div>`;
+  const today=isoOf(clampDay(new Date()));
+  const from=S.grain==="day"?isoOf(new Date(Date.now()-59*864e5)):isoOf(new Date(Date.now()-181*864e5));
+  const days=dailySeries(ct,from>ct.startDate?from:ct.startDate,today<ct.endDate?today:ct.endDate);
+  if(!days.length)return`<div class="empty">No daily rows in this window.</div>`;
+  if(S.grain==="day")
+    return barChart(days.map(d=>({k:d.d,a:d.v})),d=>dLabel(d.k).replace(/, \d+$/,""),{alt:"Items styled per day."});
+  const wk=new Map();
+  days.forEach(d=>{const dt=new Date(d.d+"T00:00:00Z");dt.setUTCDate(dt.getUTCDate()-((dt.getUTCDay()+6)%7));
+    const k=isoOf(dt);wk.set(k,(wk.get(k)||0)+d.v);});
+  return barChart([...wk].sort().map(([k,v])=>({k,a:v})),d=>dLabel(d.k).replace(/, \d+$/,""),
+    {alt:"Items styled per week, weeks beginning Monday."});
+}
+async function savePlan(ct,r){
+  const sum=draftPlan.reduce((a,p)=>a+(Number(p.target)||0),0);
+  if(Math.round(sum)!==Math.round(ct.contractedItems||0)){
+    toast(`Monthly targets must sum to ${n0(ct.contractedItems)} — currently ${n0(sum)}.`);return;}
+  const before=(ct.plan||[]).map(p=>`${p.m}:${p.target}`).join(" ");
+  const after=draftPlan.map(p=>`${p.m}:${p.target}`).join(" ");
+  const changed=draftPlan.filter((p,i)=>(ct.plan||[])[i]&&Number((ct.plan||[])[i].target)!==Number(p.target))
+    .map(p=>`${ymLabel(p.m)} → ${n0(p.target)}`);
+  if(!S.db){toast("Storage unavailable — plan not saved.");return;}
+  try{
+    await S.db.doc("contracts/"+ct.id).update({plan:draftPlan.map(p=>({m:p.m,target:Number(p.target)||0,note:p.note||""})),
+      planSource:"ops_edited",planUpdatedAt:new Date().toISOString(),planUpdatedBy:S.me||"unknown"});
+    await logAudit("Pacing plan updated",
+      changed.length?changed.join(", "):"targets re-saved (no value changes)",ct.clientName+" · term "+ct.termNo);
+    toast("Plan saved.");
+  }catch(e){toast("Could not save plan: "+(e.code||e.message));}
+}
+
+/* ============================ contract intake ============================ */
+const slug=s=>String(s).normalize("NFKD").replace(/[^\w\s-]/g,"").trim()
+  .replace(/[\s_]+/g,"-").replace(/-+/g,"-").toLowerCase().slice(0,60)||"client";
+function openContractForm(id){
+  const ct=id?S.contracts.get(id):null;
+  const d=document.createElement("dialog");
+  d.style.cssText="border:1px solid var(--line-2);border-radius:12px;padding:0;max-width:640px;width:calc(100% - 32px);background:var(--surface);color:var(--ink);box-shadow:var(--shadow)";
+  const v=(k,dv="")=>esc(ct?(ct[k]??dv):dv);
+  d.innerHTML=`<form method="dialog">
+    <div class="panel-hd"><h2>${ct?"Edit contract term":"New contract term"}</h2></div>
+    <div class="panel-bd" style="display:flex;flex-direction:column;gap:13px;max-height:70vh;overflow:auto">
+      <div class="grid-form">
+        <label class="fld">Client<input type="text" id="f-name" list="clientlist" required value="${v("clientName")}"></label>
+        <label class="fld">Account lead (AM)<input type="text" id="f-am" value="${v("amLead")}"></label>
+        <label class="fld">Ops lead<input type="text" id="f-ol" value="${v("opsLead")}"></label>
+      </div>
+      <datalist id="clientlist">${[...S.clients.values()].map(c=>`<option value="${esc(c.name)}">`).join("")}</datalist>
+      <div class="grid-form">
+        <label class="fld">Contract start<input type="date" id="f-start" required value="${v("startDate")}"></label>
+        <label class="fld">Contract end<input type="date" id="f-end" required value="${v("endDate")}"></label>
+        <label class="fld">Styling start<input type="date" id="f-styl" value="${v("stylingStartDate")}"></label>
+      </div>
+      <div class="grid-form">
+        <label class="fld">Contracted items<input type="number" id="f-total" min="0" step="1" required value="${ct?ct.contractedItems:""}"></label>
+        <label class="fld">Term length (months)<input type="number" id="f-dur" min="1" step="1" value="${ct?ct.durationMonths:12}"></label>
+      </div>
+      <label class="fld">Contract notes<textarea id="f-notes" placeholder="Amendments, extensions, complimentary styling, call-outs…">${v("notes")}</textarea></label>
+      <p class="sub" style="margin:0">A renewal is a new term, not an edit: create another term so each contract keeps its own
+      pacing plan and its own actuals window. The plan starts as an even split and can be reshaped afterwards.</p>
+    </div>
+    <div class="panel-hd" style="border-top:1px solid var(--line);border-bottom:0;justify-content:flex-end">
+      ${ct?`<button type="button" class="btn" id="f-del" style="color:var(--crit);margin-right:auto">Delete term</button>`:""}
+      <button type="button" class="btn" id="f-cancel">Cancel</button>
+      <button type="button" class="btn btn-primary" id="f-save">${ct?"Save changes":"Create term"}</button>
+    </div></form>`;
+  document.body.appendChild(d);d.showModal();
+  const close=()=>{d.close();d.remove();};
+  $("#f-cancel",d).addEventListener("click",close);
+  const sync=()=>{const s=$("#f-start",d).value,e=$("#f-end",d).value;
+    if(s&&e&&e>s)$("#f-dur",d).value=Math.max(1,monthsBetween(s,e));};
+  $("#f-start",d).addEventListener("change",sync);$("#f-end",d).addEventListener("change",sync);
+  const del=$("#f-del",d);
+  if(del)del.addEventListener("click",async()=>{
+    if(!confirm(`Delete ${ct.clientName} term ${ct.termNo}? Its pacing plan and imported actuals go with it. This cannot be undone.`))return;
+    try{await S.db.doc("contracts/"+ct.id).delete();await S.db.doc("actuals/"+ct.id).delete();
+      await logAudit("Contract term deleted",`${n0(ct.contractedItems)} items, ${ct.startDate} – ${ct.endDate}`,ct.clientName+" · term "+ct.termNo);
+      close();go("portfolio");}catch(err){toast("Could not delete: "+(err.code||err.message));}});
+  $("#f-save",d).addEventListener("click",async()=>{
+    const name=$("#f-name",d).value.trim(),start=$("#f-start",d).value,end=$("#f-end",d).value;
+    const total=Math.max(0,Math.round(+$("#f-total",d).value||0));
+    const dur=Math.max(1,Math.round(+$("#f-dur",d).value||12));
+    if(!name||!start||!end){toast("Client, contract start and contract end are all required.");return;}
+    if(end<=start){toast("Contract end must fall after contract start.");return;}
+    if(!total){toast("Enter the contracted item total.");return;}
+    if(!S.db){toast("Storage unavailable — nothing saved.");return;}
+    const cid=ct?ct.clientId:slug(name);
+    const payload={clientId:cid,clientName:name,amLead:$("#f-am",d).value.trim(),
+      opsLead:$("#f-ol",d).value.trim(),startDate:start,endDate:end,
+      stylingStartDate:$("#f-styl",d).value||null,contractedItems:total,durationMonths:dur,
+      notes:$("#f-notes",d).value.trim()};
+    try{
+      if(ct){
+        const keepPlan=ct.contractedItems===total&&ct.durationMonths===dur&&ct.startDate===start;
+        const plan=keepPlan?ct.plan:evenSplit(total,dur,start.slice(0,7));
+        await S.db.doc("contracts/"+ct.id).update({...payload,plan,
+          planSource:keepPlan?ct.planSource:"even_split_default"});
+        await logAudit("Contract term edited",
+          `${n0(total)} items · ${start} – ${end}${keepPlan?"":" · plan reset to even split"}`,name+" · term "+ct.termNo);
+      }else{
+        const n=[...S.contracts.values()].filter(c=>c.clientId===cid).length+1;
+        const tid=cid+"--t"+n;
+        if(!S.clients.has(cid))await S.db.doc("clients/"+cid).set({name,amLead:payload.amLead,
+          opsLead:payload.opsLead,lookerAccounts:[],coverageMultiplier:3,coverageConfirmed:false,
+          mappingStatus:"unmapped",note:""});
+        await S.db.doc("contracts/"+tid).set({...payload,termNo:n,status:"active",
+          plan:evenSplit(total,dur,start.slice(0,7)),planSource:"even_split_default",
+          createdAt:new Date().toISOString(),createdBy:S.me||"unknown"});
+        await S.db.doc("actuals/"+tid).set({termId:tid,clientId:cid,mctMonths:{},lookerMonths:{},lookerDays:{}});
+        await logAudit("Contract term created",`${n0(total)} items over ${dur} months · ${start} – ${end}`,name+" · term "+n);
+        draftFor=null;close();go("client",tid);return;
+      }
+      draftFor=null;close();
+    }catch(err){toast("Could not save: "+(err.code||err.message));}
+  });
+}
+
+/* ============================ Looker feed ============================ */
+const DEFINITION_CHECKS=[
+ ["counting","An <b>item</b> is one colorway of a product styled three ways — the definition printed on the client pacing plan. The report's measure counts the same thing."],
+ ["coverage","Clients on 1× or 2× coverage are flagged per client below, so their report counts are not read against a 3× contract."],
+ ["window","A calendar month is the report's own day range from the 1st up to (not including) the 1st of the next month, in the report's timezone — the 7pm refresh does not drop the last day."],
+ ["scope","Shop-the-Model and other programs tracked on separate MCT tabs are excluded from this measure, or counted and declared."],
+ ["qa","Re-styling during QA is not double-counted."],
+ ["subaccounts","Sub-accounts and verticals (apparel / home / beauty) roll up to the contract that pays for them, and to no other."],
+];
+function renderLooker(){
+  const s=S.settings;
+  const clients=[...S.clients.values()].sort((a,b)=>a.name<b.name?-1:1);
+  const unmapped=clients.filter(c=>c.mappingStatus!=="confirmed").length;
+  const active=[...S.contracts.values()].map(c=>computeTerm(c)).filter(r=>r.status==="active");
+  const gaps=active.filter(r=>r.missing.length);
+  const stale=s.lastRefresh&&(Date.now()-new Date(s.lastRefresh))/36e5>(s.freshnessHours||36);
+  const ro=!writable();
+  $("#v-looker").innerHTML=`
+  <div class="cols two">
+    <div class="panel"><div class="panel-hd"><h2>Feed status</h2></div><div class="panel-bd">
+      <div class="kpis" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr))">
+        <div class="kpi"><div class="k">Connection</div><div class="v" style="font-size:17px;color:${s.lookerConnected?"var(--good)":"var(--warn)"}">${s.lookerConnected?"Live":"Not connected"}</div>
+          <div class="s">${s.lookerConnected?"adapter reporting":"import CSV in the meantime"}</div></div>
+        <div class="kpi"><div class="k">Last refresh</div><div class="v" style="font-size:17px">${ago(s.lastRefresh)}</div>
+          <div class="s" style="color:${stale?"var(--warn)":""}">${stale?"older than "+(s.freshnessHours||36)+"h — treat as stale":s.lastRefresh?dLabel(String(s.lastRefresh).slice(0,10)):"no data loaded yet"}</div></div>
+        <div class="kpi"><div class="k">Definition</div><div class="v" style="font-size:17px;color:${s.definitionConfirmed?"var(--good)":"var(--warn)"}">${s.definitionConfirmed?"Confirmed":"Unconfirmed"}</div>
+          <div class="s">${s.definitionConfirmed?esc(nameOf(s.definitionBy))+" · "+dLabel(String(s.definitionAt||"").slice(0,10)):"numbers held back"}</div></div>
+      </div>
+      <p class="sub" style="margin:14px 0 0">The desk will not read a Looker figure for a client until <b>both</b> gates are
+      green: the counting definition below is confirmed, and that client's account mapping is confirmed. Until then the
+      hand-kept MCT monthly figures stand, labelled <span class="src-tag src-mct">MCT</span> wherever they appear.</p>
+    </div></div>
+
+    <div class="panel"><div class="panel-hd"><h2>Data health</h2></div><div class="panel-bd">
+      ${gaps.length?`<div class="banner banner-warn" style="margin-bottom:11px"><svg class="ico" viewBox="0 0 20 20" fill="currentColor"><path d="M10 2a8 8 0 100 16 8 8 0 000-16zm0 4a1 1 0 011 1v4a1 1 0 11-2 0V7a1 1 0 011-1zm0 8.5a1.1 1.1 0 110-2.2 1.1 1.1 0 010 2.2z"/></svg>
+        <div><b>${gaps.length} active term${gaps.length>1?"s have":" has"} elapsed months with no items-styled figure at all.</b>
+        These are gaps, not zeros, and are excluded from completion maths.</div></div>`
+        :`<div class="banner banner-good" style="margin-bottom:11px"><svg class="ico" viewBox="0 0 20 20" fill="currentColor"><path d="M8.2 13.4L5 10.2l1.4-1.4 1.8 1.8 5-5L14.6 7z"/></svg><div>Every elapsed month on every active term has a figure.</div></div>`}
+      <div class="tbl-scroll" style="max-height:230px;overflow-y:auto"><table>
+        <thead><tr><th>Client / term</th><th>Missing months</th></tr></thead>
+        <tbody>${gaps.slice(0,40).map(r=>`<tr class="row-link" data-id="${esc(r.ct.id)}"><td>${esc(r.ct.clientName)} <span class="dim">t${r.ct.termNo}</span></td>
+          <td class="mono-s">${r.missing.map(ymLabel).join(", ")}</td></tr>`).join("")||`<tr><td colspan="2" class="empty">Nothing missing.</td></tr>`}</tbody>
+      </table></div>
+    </div></div>
+  </div>
+
+  <div class="panel" style="margin-top:16px"><div class="panel-hd"><h2>Item-counting definition</h2>
+    <div class="spacer"></div>${s.definitionConfirmed?'<span class="pill p-good">Confirmed</span>':'<span class="pill p-warn">Blocks Looker use</span>'}</div>
+    <div class="panel-bd">
+      <p class="sub" style="margin:0 0 13px">Tick each statement only once someone has checked it against the report itself.
+      The 2022 Looker-vs-manual reconciliation found six-figure gaps on exactly these points, so they are gates, not notes.</p>
+      <div class="chklist" id="defchecks">
+        ${DEFINITION_CHECKS.map(([k,t])=>`<label class="chk"><input type="checkbox" data-k="${k}" id="def-${k}" ${s["def_"+k]?"checked":""} ${ro||s.definitionConfirmed?"disabled":""}><span>${t}</span></label>`).join("")}
+      </div>
+      <label class="fld" style="margin-top:13px">Measure / Explore the figures come from
+        <input type="text" id="def-url" value="${esc(s.reportUrl||"")}" placeholder="Looker Explore URL or Look ID" ${ro?"disabled":""}></label>
+      <label class="fld" style="margin-top:11px">Notes on what this measure counts
+        <textarea id="def-note" placeholder="e.g. which bundle types count, how re-styles are handled" ${ro?"disabled":""}>${esc(s.countingNote||"")}</textarea></label>
+      <div class="tools" style="margin-top:13px">
+        ${s.definitionConfirmed
+          ?`<button class="btn" id="unconfirm" ${ro?"disabled":""}>Withdraw confirmation</button>
+            <span class="sub">Confirmed by ${esc(nameOf(s.definitionBy))} on ${dLabel(String(s.definitionAt||"").slice(0,10))}.</span>`
+          :`<button class="btn btn-primary" id="confirmdef" ${ro?"disabled":""}>Confirm definition</button>
+            <span class="sub">All six statements must be ticked.</span>`}
+      </div>
+    </div></div>
+
+  <div class="panel" style="margin-top:16px"><div class="panel-hd"><h2>Client mapping</h2>
+    <div class="spacer"></div><span class="sub">${S.clients.size-unmapped} of ${S.clients.size} confirmed</span></div>
+    <div class="tbl-scroll" style="max-height:440px;overflow-y:auto"><table>
+      <thead><tr><th>Client</th><th>Looker account name(s)</th><th class="r">Coverage</th><th>Status</th><th></th></tr></thead>
+      <tbody>${clients.map(c=>`<tr>
+        <td><b>${esc(c.name)}</b><div class="cmeta">${[...S.contracts.values()].filter(t=>t.clientId===c.id).length} term(s)</div></td>
+        <td><input type="text" class="map-acc" data-id="${esc(c.id)}" id="map-${esc(c.id)}" value="${esc((c.lookerAccounts||[]).join(", "))}" placeholder="exact account name(s), comma separated" ${ro?"disabled":""}></td>
+        <td class="r"><select class="map-cov" data-id="${esc(c.id)}" id="cov-${esc(c.id)}" style="width:72px" ${ro?"disabled":""}>
+          ${[1,2,3].map(n=>`<option value="${n}" ${(c.coverageMultiplier??3)==n?"selected":""}>${n}×</option>`).join("")}</select></td>
+        <td>${c.mappingStatus==="confirmed"?'<span class="pill p-good">Confirmed</span>':'<span class="pill p-warn">Unmapped</span>'}</td>
+        <td class="r"><button class="btn btn-sm map-btn" data-id="${esc(c.id)}" ${ro?"disabled":""}>${c.mappingStatus==="confirmed"?"Unconfirm":"Confirm"}</button></td>
+      </tr>`).join("")}</tbody>
+    </table></div></div>
+
+  <div class="panel" style="margin-top:16px"><div class="panel-hd"><h2>Load report actuals</h2></div><div class="panel-bd">
+    <p class="sub" style="margin:0 0 12px">No Looker connector is attached to this workspace yet, so the desk reads a daily
+    export instead. Export the items-styled Look as CSV with one row per account per day and drop it in — the importer maps
+    accounts, buckets days into months, stamps the refresh time and reports anything it could not place.</p>
+    <div class="code">account,date,items_styled
+Academy,2026-09-01,132
+Academy,2026-09-02,208</div>
+    <div class="tools" style="margin-top:13px">
+      <input type="file" id="csvfile" accept=".csv,text/csv" style="width:auto" ${ro?"disabled":""}>
+      <button class="btn btn-sm" id="clearlkr" ${ro?"disabled":""}>Clear loaded Looker data</button>
+    </div>
+    <div id="importout" style="margin-top:13px"></div>
+    <details style="margin-top:16px"><summary class="sub" style="cursor:pointer">What a live connector has to return</summary>
+      <div class="code" style="margin-top:9px">rows: [{ account: string, date: "YYYY-MM-DD", items_styled: number }]
+grain:   one row per account per calendar day, no pre-aggregation
+window:  [contract_start, today] per client, refreshed daily after the 19:00 ET load
+filters: none applied upstream — the desk does its own contract-term windowing
+meta:    { refreshed_at: ISO-8601, measure_id: string }</div></details>
+  </div></div>`;
+
+  $$("#v-looker .row-link").forEach(tr=>tr.addEventListener("click",()=>go("client",tr.dataset.id)));
+  $$("#defchecks input").forEach(cb=>cb.addEventListener("change",()=>
+    saveSettings({["def_"+cb.dataset.k]:cb.checked})));
+  const cd=$("#confirmdef");
+  if(cd)cd.addEventListener("click",async()=>{
+    if(!DEFINITION_CHECKS.every(([k])=>S.settings["def_"+k])){toast("Tick all six statements first.");return;}
+    await saveSettings({definitionConfirmed:true,definitionBy:S.me||"unknown",
+      definitionAt:new Date().toISOString(),reportUrl:$("#def-url").value.trim(),
+      countingNote:$("#def-note").value.trim()},
+      {what:"Looker counting definition confirmed",detail:$("#def-url").value.trim()||"no measure link given",scope:"Looker feed"});
+    toast("Definition confirmed.");});
+  const uc=$("#unconfirm");
+  if(uc)uc.addEventListener("click",async()=>{
+    await saveSettings({definitionConfirmed:false},
+      {what:"Looker counting definition withdrawn",detail:"Looker figures held back again",scope:"Looker feed"});});
+  const du=$("#def-url"),dn=$("#def-note");
+  if(du)du.addEventListener("change",()=>saveSettings({reportUrl:du.value.trim()}));
+  if(dn)dn.addEventListener("change",()=>saveSettings({countingNote:dn.value.trim()}));
+  $$(".map-acc").forEach(i=>i.addEventListener("change",()=>updClient(i.dataset.id,
+    {lookerAccounts:i.value.split(",").map(x=>x.trim()).filter(Boolean)})));
+  $$(".map-cov").forEach(i=>i.addEventListener("change",()=>updClient(i.dataset.id,
+    {coverageMultiplier:+i.value,coverageConfirmed:true},"Coverage multiplier set to "+i.value+"×")));
+  $$(".map-btn").forEach(b=>b.addEventListener("click",()=>{
+    const c=S.clients.get(b.dataset.id);if(!c)return;
+    const on=c.mappingStatus==="confirmed";
+    if(!on&&!(c.lookerAccounts||[]).length){toast("Enter the Looker account name before confirming.");return;}
+    updClient(c.id,{mappingStatus:on?"unmapped":"confirmed"},
+      on?"Looker mapping unconfirmed":"Looker mapping confirmed → "+(c.lookerAccounts||[]).join(", "));}));
+  const cf=$("#csvfile");
+  if(cf)cf.addEventListener("change",e=>{const f=e.target.files[0];if(!f)return;
+    const rd=new FileReader();rd.onload=()=>importCSV(String(rd.result),f.name);rd.readAsText(f);});
+  $("#clearlkr").addEventListener("click",clearLooker);
+}
+async function updClient(id,patch,auditWhat){
+  const c=S.clients.get(id);if(!c||!S.db)return;
+  try{await S.db.doc("clients/"+id).update(patch);
+    if(auditWhat)await logAudit(auditWhat,"",c.name);}catch(e){toast("Could not save: "+(e.code||e.message));}
+}
+
+/* ============================ CSV in / out ============================ */
+function parseCSV(text){
+  const rows=[];let f="",row=[],q=false;
+  for(let i=0;i<text.length;i++){const c=text[i];
+    if(q){if(c==='"'){if(text[i+1]==='"'){f+='"';i++;}else q=false;}else f+=c;}
+    else if(c==='"')q=true;
+    else if(c===","){row.push(f);f="";}
+    else if(c==="\n"){row.push(f);rows.push(row);row=[];f="";}
+    else if(c!=="\r")f+=c;}
+  if(f||row.length){row.push(f);rows.push(row);}
+  return rows.filter(r=>r.some(x=>String(x).trim()!==""));
+}
+const COL={account:["account","client","account_name","client_name","account name","clients.name"],
+  date:["date","day","styled_date","created_date","date_date","outfits.created_date"],
+  items:["items_styled","items","count","item_count","total","styled","outfits.count"]};
+function findCol(hdr,names){
+  const h=hdr.map(x=>String(x).trim().toLowerCase());
+  for(const n of names){const i=h.indexOf(n);if(i>=0)return i;}
+  for(const n of names){const i=h.findIndex(x=>x.includes(n));if(i>=0)return i;}
+  return -1;
+}
+async function importCSV(text,fname){
+  const out=$("#importout");
+  const rows=parseCSV(text);
+  if(rows.length<2){out.innerHTML=`<div class="banner banner-crit"><div>Could not read <b>${esc(fname)}</b> — fewer than two rows.</div></div>`;return;}
+  const hdr=rows[0];
+  const ia=findCol(hdr,COL.account),id=findCol(hdr,COL.date),iv=findCol(hdr,COL.items);
+  if(ia<0||id<0||iv<0){out.innerHTML=`<div class="banner banner-crit"><div><b>Missing a required column.</b>
+    Found: <span class="mono-s">${esc(hdr.join(", "))}</span>. Needs an account column, a date column and an items column.</div></div>`;return;}
+  // account -> clientId, only for confirmed mappings
+  const map=new Map();
+  for(const c of S.clients.values()){
+    if(c.mappingStatus!=="confirmed")continue;
+    for(const a of (c.lookerAccounts||[]))map.set(a.trim().toLowerCase(),c.id);
+  }
+  const byClient=new Map();const unknown=new Map();let bad=0,minD="9999",maxD="0";
+  for(let i=1;i<rows.length;i++){
+    const r=rows[i];const acc=String(r[ia]??"").trim();
+    const dt=String(r[id]??"").trim().slice(0,10);
+    const v=Number(String(r[iv]??"").replace(/[, ]/g,""));
+    if(!acc||!/^\d{4}-\d{2}-\d{2}$/.test(dt)||!isFinite(v)){bad++;continue;}
+    const cid=map.get(acc.toLowerCase());
+    if(!cid){unknown.set(acc,(unknown.get(acc)||0)+v);continue;}
+    if(dt<minD)minD=dt;if(dt>maxD)maxD=dt;
+    if(!byClient.has(cid))byClient.set(cid,new Map());
+    const m=byClient.get(cid);m.set(dt,(m.get(dt)||0)+v);
+  }
+  if(!byClient.size){
+    out.innerHTML=`<div class="banner banner-crit"><div><b>Nothing could be placed.</b> None of the ${unknown.size}
+      account name${unknown.size===1?"":"s"} in this file matches a <i>confirmed</i> client mapping above.
+      ${unknown.size?`<div class="mono-s" style="margin-top:7px">${esc([...unknown.keys()].slice(0,12).join(" · "))}</div>`:""}</div></div>`;return;}
+  // split each client's days across its contract terms by date window
+  const writes=[];let placed=0,orphanDays=0;
+  for(const [cid,days] of byClient){
+    const terms=[...S.contracts.values()].filter(t=>t.clientId===cid);
+    for(const t of terms){
+      const cur=S.actuals.get(t.id)||{termId:t.id,clientId:cid,mctMonths:{},lookerMonths:{},lookerDays:{}};
+      const ld={...(cur.lookerDays||{})},lm={};
+      let touched=false;
+      for(const [d,v] of days){
+        if(d<t.startDate||d>t.endDate)continue;
+        ld[d]=v;touched=true;placed+=v;
+      }
+      if(!touched)continue;
+      for(const [d,v] of Object.entries(ld)){const k=d.slice(0,7);lm[k]=(lm[k]||0)+v;}
+      writes.push({id:t.id,body:{...cur,termId:t.id,clientId:cid,lookerDays:ld,lookerMonths:lm,
+        lookerLastRefresh:new Date().toISOString()}});
+    }
+    // days that fall in no term at all
+    const covered=terms.some(t=>[...days.keys()].some(d=>d>=t.startDate&&d<=t.endDate));
+    if(!covered)orphanDays+=days.size;
+  }
+  if(!S.db){out.innerHTML=`<div class="banner banner-crit"><div>Storage unavailable — nothing was written.</div></div>`;return;}
+  out.innerHTML=`<div class="banner banner-info"><div>Writing ${writes.length} term record${writes.length===1?"":"s"}…</div></div>`;
+  let failed=0;
+  for(const w of writes){try{await S.db.doc("actuals/"+w.id).set(w.body);}catch(e){failed++;}}
+  await saveSettings({lastRefresh:new Date().toISOString(),lookerConnected:true});
+  await logAudit("Looker actuals imported",
+    `${esc(fname)} · ${n0(placed)} items across ${writes.length} terms · ${minD} to ${maxD}`,"Looker feed");
+  out.innerHTML=`
+    <div class="banner banner-good"><svg class="ico" viewBox="0 0 20 20" fill="currentColor"><path d="M8.2 13.4L5 10.2l1.4-1.4 1.8 1.8 5-5L14.6 7z"/></svg>
+      <div><b>${n0(placed)} items loaded</b> across ${writes.length} contract term${writes.length===1?"":"s"},
+      covering ${dLabel(minD)} – ${dLabel(maxD)}.${failed?` ${failed} write(s) failed.`:""}</div></div>
+    ${unknown.size?`<div class="banner banner-warn" style="margin-top:9px"><svg class="ico" viewBox="0 0 20 20" fill="currentColor"><path d="M10 2a8 8 0 100 16 8 8 0 000-16zm0 4a1 1 0 011 1v4a1 1 0 11-2 0V7a1 1 0 011-1zm0 8.5a1.1 1.1 0 110-2.2 1.1 1.1 0 010 2.2z"/></svg>
+      <div><b>${unknown.size} account name${unknown.size===1?"":"s"} went nowhere</b> — no confirmed mapping.
+      Their items are <i>not</i> in any total above.
+      <div class="mono-s" style="margin-top:7px">${esc([...unknown.entries()].sort((a,b)=>b[1]-a[1]).slice(0,12).map(([k,v])=>k+" ("+n0(v)+")").join(" · "))}</div></div></div>`:""}
+    ${orphanDays?`<div class="banner banner-warn" style="margin-top:9px"><div><b>${orphanDays} day row${orphanDays===1?"":"s"} fell outside every contract term</b> for their client — styling recorded before a term opened or after it closed.</div></div>`:""}
+    ${bad?`<div class="banner banner-info" style="margin-top:9px"><div>${bad} row${bad===1?"":"s"} skipped — unparseable date or item count.</div></div>`:""}`;
+}
+async function clearLooker(){
+  if(!confirm("Remove all imported Looker figures? Contract and pacing data are untouched; the desk falls back to the MCT baseline."))return;
+  if(!S.db)return;
+  let n=0;
+  for(const a of S.actuals.values()){
+    if(!Object.keys(a.lookerDays||{}).length&&!Object.keys(a.lookerMonths||{}).length)continue;
+    try{await S.db.doc("actuals/"+a.id).update({lookerDays:{},lookerMonths:{},lookerLastRefresh:null});n++;}catch(e){}
+  }
+  await saveSettings({lastRefresh:null,lookerConnected:false});
+  await logAudit("Looker actuals cleared",n+" term records reset to MCT baseline","Looker feed");
+  toast("Cleared "+n+" term records.");
+}
+function exportCSV(){
+  const rows=portfolioRows();
+  const head=["Client","Term","AM lead","Ops lead","Contract start","Contract end","Styling start",
+    "Contracted items","Items styled to date","Actuals source","Remaining balance","% of contract completed",
+    "Current month target","Current month styled","Plan to date","Variance vs plan","Required run rate","Months left","Missing months"];
+  const q=v=>`"${String(v??"").replace(/"/g,'""')}"`;
+  const body=rows.map(r=>[r.ct.clientName,r.ct.termNo,r.ct.amLead,r.ct.opsLead,r.ct.startDate,r.ct.endDate,
+    r.ct.stylingStartDate||"",r.total,r.actualToDate,r.useLooker?"Looker":"MCT manual",r.remaining,
+    r.pctComplete!=null?(r.pctComplete*100).toFixed(1)+"%":"",r.curRow?r.curRow.target:"",
+    r.curRow&&r.curRow.actual!=null?r.curRow.actual:"",Math.round(r.planToDate),Math.round(r.variance),
+    r.requiredRunRate!=null?Math.round(r.requiredRunRate):"",r.monthsLeft,r.missing.join(" ")].map(q).join(","));
+  const csv=[head.map(q).join(","),...body].join("\n");
+  if(S.dl)S.dl.save({filename:`pacing-desk-${isoOf(new Date())}.csv`,data:csv})
+    .then(()=>toast("Exported.")).catch(()=>toast("Export declined."));
+  else toast("Downloads are not available in this view.");
+}
+
+/* ============================ change log ============================ */
+function renderAudit(){
+  const ids=[...new Set(S.audit.map(e=>e.by).filter(Boolean))];
+  const unknown=ids.filter(i=>!S.profiles[i]);
+  if(unknown.length)resolveNames(unknown);
+  $("#v-audit").innerHTML=`
+  <div class="panel" style="margin-top:16px"><div class="panel-hd"><h2>Change log</h2><div class="spacer"></div>
+    <span class="sub">every plan, contract and feed change — most recent first</span></div>
+    <div class="panel-bd">
+      ${S.audit.length?S.audit.map(e=>`<div class="audit-row">
+        <div><div class="mono-s">${new Date(e.at).toLocaleString("en-US",{month:"short",day:"numeric",year:"numeric",hour:"numeric",minute:"2-digit"})}</div>
+          <div class="cmeta">${esc(nameOf(e.by))}</div></div>
+        <div><b>${esc(e.what)}</b>${e.scope?` <span class="src-tag">${esc(e.scope)}</span>`:""}
+          ${e.detail?`<div class="sub" style="margin-top:2px">${esc(e.detail)}</div>`:""}</div>
+      </div>`).join(""):`<div class="empty">No changes recorded yet.</div>`}
+    </div></div>`;
+}
+
+/* ============================ init ============================ */
+window.addEventListener("keydown",e=>{
+  if(e.key==="Enter"&&e.target.matches("tr.row-link"))e.target.click();});
+render();boot();
+</script>
+
+</body></html>
