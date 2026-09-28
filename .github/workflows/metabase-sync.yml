@@ -17,5 +17,5 @@ jobs:
     steps:
       - name: Call the Metabase sync endpoint
         run: |
-             curl -sS -X GET "https://planning-2-0.vercel.app/api/metabase-sync" \
+          curl -sS -X GET "https://planning-2-0.vercel.app/api/metabase-sync" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
